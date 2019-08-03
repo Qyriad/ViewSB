@@ -7,6 +7,8 @@ This file is part of ViewSB
 
 # pylint: disable=maybe-no-member,access-member-before-definition
 
+import sys
+import argparse
 from datetime import datetime
 
 
@@ -73,8 +75,11 @@ try:
                 'data':            data
             }
 
+            trans = USBTransaction(**fields)
+            print('TRANS: {}'.format(trans))
+
             # FIXME: wrap this in a transaction object!
-            return USBTransaction(**fields)
+            return trans
 
         def _get_device_address(self):
             return self.backend.proxy.libusb_device.address
@@ -224,6 +229,21 @@ class USBProxyBackend(ViewSBBackend):
     UI_DESCRIPTION = "display packets proxied by FaceDancer's usbproxy"
 
     @staticmethod
+    def parse_arguments(args, parent_parser=[]):
+
+        # Parse user input and try to extract our class options.
+        parser = argparse.ArgumentParser(parents=parent_parser, add_help=False)
+        parser.add_argument('-v', dest='vendor_id', help='the vendor ID of the proxied USB device', type=str)
+        parser.add_argument('-p', dest='product_id', help='the product ID of the proxied USB device', type=str)
+        args, leftover_args = parser.parse_known_args()
+
+        if not any((args.vendor_id, args.product_id,)):
+            parser.print_help()
+            sys.exit(0)
+
+        return (int(args.vendor_id, 16), int(args.product_id, 16)), leftover_args
+
+    @staticmethod
     def reason_to_be_disabled():
 
         # The main reason we'd not be available would be that pyopenvizsla
@@ -246,7 +266,7 @@ class USBProxyBackend(ViewSBBackend):
 
         # Create the backend USBProxy instance that will perform our captures...
         facedancer_app = FacedancerUSBApp()
-        self.proxy = USBProxyDevice(facedancer_app, idVendor=vendor_id, idProduct=product_id)
+        self.proxy = USBProxyDevice(facedancer_app, idVendor=vendor_id, idProduct=product_id, verbose=4)
 
         # ... add the necessary filters to perform our magic...
         self.proxy.add_filter(ViewSBProxyObserver(self))

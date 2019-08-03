@@ -314,7 +314,11 @@ class USBTransferGrouper(ViewSBDecoder):
         if packet.endpoint_number == 0:
             endpoint_address = 0
         else:
-            endpoint_address = packet.direction.to_endpoint_address(packet.endpoint_number)
+            # print('DEBUG: {}'.format(packet.__dict__))
+            if packet.direction is None:
+                print('PACKET: {}'.format(packet))
+            else:
+                endpoint_address = packet.direction.to_endpoint_address(packet.endpoint_number)
 
         return (packet.device_address, endpoint_address)
 
