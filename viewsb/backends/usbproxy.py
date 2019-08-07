@@ -315,4 +315,4 @@ class USBProxyBackend(ViewSBBackend):
         """ Handles termination of the capture. """
 
         # Pass the termination on to our backend.
-        self.backend.handle_termination()
+        pass
