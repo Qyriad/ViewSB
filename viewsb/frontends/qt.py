@@ -84,17 +84,18 @@ class QtFrontend(ViewSBFrontend):
         self.ui_file = QtCore.QFile(os.path.dirname(os.path.realpath(__file__)) + '/qt.ui')
 
         self.loader = QUiLoader()
-        self.window: QtWidgets.QMainWindow = self.loader.load(self.ui_file)
+        self.window = self.loader.load(self.ui_file)
 
-        # The default column size of 100 is too small for the summary column.
-        self.window.usb_tree_widget.setColumnWidth(1, 400)
+        # The default column size is too small for the timestamp and summary columns.
+        self.window.usb_tree_widget.setColumnWidth(0, 120)
+        self.window.usb_tree_widget.setColumnWidth(1, 500)
 
         self.window.update_timer = QtCore.QTimer()
         self.window.update_timer.timeout.connect(self.update)
 
         self.window.usb_tree_widget.currentItemChanged.connect(self.tree_current_item_changed)
 
-        self.window.usb_tree_widget: QtWidgets.QTreeWidget = self.window.usb_tree_widget
+        self.window.usb_tree_widget = self.window.usb_tree_widget
         self.window.usb_tree_widget.sortByColumn(0)
 
 
@@ -110,6 +111,7 @@ class QtFrontend(ViewSBFrontend):
         packet_list = []
 
         try:
+
             # Get as many packets as we can as quick as we can.
             while(True):
 
@@ -121,13 +123,14 @@ class QtFrontend(ViewSBFrontend):
             pass
 
         finally:
+
             # In case the queue was empty in the first place and didn't have anything ready.
             if len(packet_list) > 0:
 
                 self.add_packets(packet_list)
 
 
-    def add_packets(self, viewsb_packets: []):
+    def add_packets(self, viewsb_packets):
         """ Adds a list of top-level ViewSB packets to the tree.
 
         We're in the UI thread; every bit of overhead counts, so let's batch as much as possible.
@@ -152,23 +155,23 @@ class QtFrontend(ViewSBFrontend):
 
         self.window.usb_details_tree_widget.setColumnCount(2)
 
-        current_packet: ViewSBPacket = current_item.data(0, QtCore.Qt.UserRole)
+        current_packet = current_item.data(0, QtCore.Qt.UserRole)
 
-        # A list of 2-tuples: first element is a table title, and the second is usually a string: string dict
+        # A list of 2-tuples: first element is a table title, and the second is usually a string:string dict
         detail_fields = current_packet.get_detail_fields()
 
         # Each table will have a root item in the details view.
         root_items = []
 
         for table in detail_fields:
-            title: str = table[0]
+            title = table[0]
 
             root = QtWidgets.QTreeWidgetItem([title])
             children = []
 
             fields = table[1]
 
-            # The usual case: a str: str dict.
+            # The usual case: a str:str dict.
             if type(fields) == type({}):
                 for key, value in fields.items():
                     children.append(QtWidgets.QTreeWidgetItem(stringify_list([key, value])))
