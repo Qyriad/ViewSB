@@ -32,7 +32,7 @@ def stringify_list(l: []) -> [str]:
 
 def get_packet_string_array(viewsb_packet):
     """ Tiny helper to return and stringify the common fields used for the columns of tree items. """
-    return stringify_list([viewsb_packet.timestamp, viewsb_packet.summarize(), viewsb_packet.summarize_status(), viewsb_packet.summarize_data()] + [viewsb_packet])
+    return stringify_list([viewsb_packet.timestamp, viewsb_packet.summarize(), viewsb_packet.summarize_status(), viewsb_packet.summarize_data()]) + [viewsb_packet]
 
 
 def recursive_packet_walk(viewsb_packet, packet_children_list):
