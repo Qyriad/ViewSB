@@ -195,8 +195,6 @@ class QtFrontend(ViewSBFrontend):
         # Clear the details widget.
         self.window.usb_details_tree_widget.clear()
 
-        self.window.usb_details_tree_widget.setColumnCount(2)
-
         current_packet = current_item.data(0, QtCore.Qt.UserRole)
 
         # A list of 2-tuples: first element is a table title, and the second is usually a string:string dict
