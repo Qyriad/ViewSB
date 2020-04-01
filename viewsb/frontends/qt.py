@@ -75,6 +75,47 @@ class QtFrontend(ViewSBFrontend):
         return None
 
 
+    def _update_detail_fields(self, detail_fields):
+
+        # Each table will have a root item in the details view.
+        root_items = []
+
+        for table in detail_fields:
+            title = table[0]
+
+            root = QtWidgets.QTreeWidgetItem([title])
+            children = []
+
+            fields = table[1]
+
+            # The usual case: a str:str dict.
+            if type(fields) == type({}):
+                for key, value in fields.items():
+                    children.append(QtWidgets.QTreeWidgetItem(stringify_list([key, value])))
+
+            # Sometimes a descriptor will just be a 1-column list.
+            elif type(fields) == type([]):
+                for item in fields:
+                    children.append(QtWidgets.QTreeWidgetItem([str(item)]))
+
+            # Sometimes it'll just be a string, or, if it's an unknown descriptor, a `bytes` instance.
+            else:
+                children.append(QtWidgets.QTreeWidgetItem([str(fields)]))
+
+            root.addChildren(children)
+
+            # Add an empty "item" between each table
+            root_items += [root, QtWidgets.QTreeWidgetItem([])]
+
+
+        self.window.usb_details_tree_widget.addTopLevelItems(root_items)
+
+        self.window.usb_details_tree_widget.expandAll()
+
+        self.window.usb_details_tree_widget.resizeColumnToContents(0)
+        self.window.usb_details_tree_widget.resizeColumnToContents(1)
+
+
     def __init__(self):
         """ Sets up the Qt UI. """
 
@@ -147,6 +188,7 @@ class QtFrontend(ViewSBFrontend):
 
             self.window.usb_tree_widget.addTopLevelItem(top_level_item)
 
+
     def tree_current_item_changed(self, current_item, previous_item):
         """ Use the side panel to show a detailed view of the current item. """
 
@@ -160,43 +202,9 @@ class QtFrontend(ViewSBFrontend):
         # A list of 2-tuples: first element is a table title, and the second is usually a string:string dict
         detail_fields = current_packet.get_detail_fields()
 
-        # Each table will have a root item in the details view.
-        root_items = []
+        if detail_fields:
+            self._update_detail_fields(detail_fields)
 
-        for table in detail_fields:
-            title = table[0]
-
-            root = QtWidgets.QTreeWidgetItem([title])
-            children = []
-
-            fields = table[1]
-
-            # The usual case: a str:str dict.
-            if type(fields) == type({}):
-                for key, value in fields.items():
-                    children.append(QtWidgets.QTreeWidgetItem(stringify_list([key, value])))
-
-            # Sometimes a descriptor will just be a 1-column list.
-            elif type(fields) == type([]):
-                for item in fields:
-                    children.append(QtWidgets.QTreeWidgetItem([str(item)]))
-
-            # Sometimes it'll just be a string, or, if it's an unknown descriptor, a `bytes` instance.
-            else:
-                children.append(QtWidgets.QTreeWidgetItem([str(fields)]))
-
-            root.addChildren(children)
-
-            # Add an empty "item" between each table
-            root_items += [root, QtWidgets.QTreeWidgetItem([])]
-
-
-        self.window.usb_details_tree_widget.addTopLevelItems(root_items)
-
-        self.window.usb_details_tree_widget.expandAll()
-
-        self.window.usb_details_tree_widget.resizeColumnToContents(0)
-        self.window.usb_details_tree_widget.resizeColumnToContents(1)
 
     def run(self):
         """ Overrides `ViewSBFrontend.run()` """
