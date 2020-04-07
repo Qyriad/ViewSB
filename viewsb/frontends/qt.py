@@ -31,7 +31,24 @@ def stringify_list(l):
 
 def get_packet_string_array(viewsb_packet):
     """ Tiny helper to return and stringify the common fields used for the columns of tree items. """
-    return stringify_list([viewsb_packet.timestamp, viewsb_packet.summarize(), viewsb_packet.summarize_status(), viewsb_packet.summarize_data()]) + [viewsb_packet]
+
+    if viewsb_packet.direction:
+        direction = viewsb_packet.direction.name
+    else:
+        direction = ''
+
+    length = len(viewsb_packet.data) if viewsb_packet.data is not None else ''
+
+    return stringify_list([
+            viewsb_packet.timestamp,
+            viewsb_packet.device_address,
+            viewsb_packet.endpoint_number,
+            direction,
+            length,
+            viewsb_packet.summarize(),
+            viewsb_packet.summarize_status(),
+            viewsb_packet.summarize_data()
+            ]) + [viewsb_packet]
 
 
 def recursive_packet_walk(viewsb_packet, packet_children_list):
@@ -66,9 +83,13 @@ class QtFrontend(ViewSBFrontend):
 
 
     COLUMN_TIMESTAMP = 0
-    COLUMN_SUMMARY   = 1
-    COLUMN_STATUS    = 2
-    COLUMN_DATA      = 3
+    COLUMN_DEVICE    = 1
+    COLUMN_ENDPOINT  = 2
+    COLUMN_DIRECTION = 3
+    COLUMN_LENGTH    = 4
+    COLUMN_SUMMARY   = 5
+    COLUMN_STATUS    = 6
+    COLUMN_DATA      = 7
 
 
     @staticmethod
@@ -132,9 +153,12 @@ class QtFrontend(ViewSBFrontend):
         self.loader = QUiLoader()
         self.window = self.loader.load(self.ui_file)
 
-        # The default column size is too small for the timestamp and summary columns.
         self.window.usb_tree_widget.setColumnWidth(self.COLUMN_TIMESTAMP, 120)
-        self.window.usb_tree_widget.setColumnWidth(self.COLUMN_SUMMARY, 500)
+        self.window.usb_tree_widget.setColumnWidth(self.COLUMN_DEVICE,    32)
+        self.window.usb_tree_widget.setColumnWidth(self.COLUMN_ENDPOINT,  24)
+        self.window.usb_tree_widget.setColumnWidth(self.COLUMN_DIRECTION, 24)
+        self.window.usb_tree_widget.setColumnWidth(self.COLUMN_LENGTH,    60)
+        self.window.usb_tree_widget.setColumnWidth(self.COLUMN_SUMMARY,   500)
 
         self.window.update_timer = QtCore.QTimer()
         self.window.update_timer.timeout.connect(self.update)
