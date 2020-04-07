@@ -63,6 +63,9 @@ This file is part of ViewSB
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
           </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
           <property name="sortingEnabled">
            <bool>false</bool>
           </property>
@@ -71,7 +74,7 @@ This file is part of ViewSB
           </property>
           <column>
            <property name="text">
-            <string>timestamp</string>
+            <string>summary</string>
            </property>
           </column>
           <column>
@@ -96,7 +99,7 @@ This file is part of ViewSB
           </column>
           <column>
            <property name="text">
-            <string>summary</string>
+            <string>timestamp</string>
            </property>
           </column>
           <column>

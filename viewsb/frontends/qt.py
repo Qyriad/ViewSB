@@ -32,20 +32,17 @@ def stringify_list(l):
 def get_packet_string_array(viewsb_packet):
     """ Tiny helper to return and stringify the common fields used for the columns of tree items. """
 
-    if viewsb_packet.direction:
-        direction = viewsb_packet.direction.name
-    else:
-        direction = ''
+    direction = viewsb_packet.direction.name if viewsb_packet.direction is not None else ''
 
     length = len(viewsb_packet.data) if viewsb_packet.data is not None else ''
 
     return stringify_list([
-            viewsb_packet.timestamp,
+            viewsb_packet.summarize(),
             viewsb_packet.device_address,
             viewsb_packet.endpoint_number,
             direction,
             length,
-            viewsb_packet.summarize(),
+            viewsb_packet.timestamp,
             viewsb_packet.summarize_status(),
             viewsb_packet.summarize_data()
             ]) + [viewsb_packet]
@@ -69,6 +66,7 @@ def recursive_packet_walk(viewsb_packet, packet_children_list):
         # Recursively populate `sub_item`'s children.
         children = []
         recursive_packet_walk(sub_packet, children)
+        sub_item.addChildren(children)
 
         # Add our subordinate (and it's entire hierarchy) as a child of our parent.
         packet_children_list.append(sub_item)
@@ -82,12 +80,15 @@ class QtFrontend(ViewSBFrontend):
     UI_DESCRIPTION = 'proof-of-concept, unstable GUI in Qt'
 
 
-    COLUMN_TIMESTAMP = 0
+    # So, Qt's tree widgets require that column 0 have the expand arrow, but you _can_ change
+    # where column 0 is displayed.
+    # We want the summary column to have the expand arrow, so we'll swap it with the timestamp column later.
+    COLUMN_TIMESTAMP = 5
     COLUMN_DEVICE    = 1
     COLUMN_ENDPOINT  = 2
     COLUMN_DIRECTION = 3
     COLUMN_LENGTH    = 4
-    COLUMN_SUMMARY   = 5
+    COLUMN_SUMMARY   = 0
     COLUMN_STATUS    = 6
     COLUMN_DATA      = 7
 
@@ -152,6 +153,9 @@ class QtFrontend(ViewSBFrontend):
 
         self.loader = QUiLoader()
         self.window = self.loader.load(self.ui_file)
+
+        # Put the expand arrow on column 5.
+        self.window.usb_tree_widget.header().swapSections(0, 5)
 
         self.window.usb_tree_widget.setColumnWidth(self.COLUMN_TIMESTAMP, 120)
         self.window.usb_tree_widget.setColumnWidth(self.COLUMN_DEVICE,    32)
