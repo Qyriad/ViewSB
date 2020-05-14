@@ -15,6 +15,7 @@ try:
     from PySide2.QtWidgets import QApplication, QWidget, QTreeWidget, QTreeWidgetItem
     from PySide2 import QtCore
     from PySide2.QtCore import QSize
+    from PySide2.QtGui import QIcon, QColor
     from PySide2.QtUiTools import QUiLoader
 except (ImportError, ModuleNotFoundError):
     pass
@@ -112,6 +113,23 @@ class QtFrontend(ViewSBFrontend):
         self.window.usb_details_tree_widget.resizeColumnToContents(1)
 
 
+    def _get_icon_for_packet(self, packet):
+        """ Returns the appropriate icon for a ViewSB packet.
+
+        Args:
+            packet -- The ViewSB packet in question.
+
+        Returns a QIcon.
+        """
+
+        if isinstance(packet, USBTransfer):
+            return QIcon.fromTheme('drive-multidisk')
+        elif isinstance(packet, USBTransaction):
+            return QIcon.fromTheme('list-add')
+        else:
+            return QIcon.fromTheme('go-jump')
+
+
     def _get_item_for_packet(self, viewsb_packet):
         """ Creates a QTreeWidgetItem for a given ViewSBPacket.
 
@@ -143,6 +161,14 @@ class QtFrontend(ViewSBFrontend):
 
 
         item = QTreeWidgetItem(get_packet_string_array(viewsb_packet))
+
+        item.setIcon(self.COLUMN_SUMMARY, self._get_icon_for_packet(viewsb_packet))
+
+        try:
+            if viewsb_packet.handshake == USBPacketID.NAK:
+                item.setBackgroundColor(self.COLUMN_STATUS, QColor('red'))
+        except:
+            pass
 
         # Give the item a reference to the original packet object.
         item.setData(0, QtCore.Qt.UserRole, viewsb_packet)
